@@ -102,7 +102,8 @@ export const SearchBooksPage = () => {
       value.toLowerCase() === "fe" ||
       value.toLowerCase() === "be" ||
       value.toLowerCase() === "data" ||
-      value.toLowerCase() === "devops"
+      value.toLowerCase() === "devops" ||
+      value.toLowerCase() === "japanese"
     ) {
       setCategorySelection(value);
       setSearchUrl(
@@ -182,6 +183,11 @@ export const SearchBooksPage = () => {
                 <li onClick={() => categoryField("DevOps")}>
                   <a className="dropdown-item" href="#">
                     DevOps
+                  </a>
+                </li>
+                <li onClick={() => categoryField("Japanese")}>
+                  <a className="dropdown-item" href="#">
+                    Japanese
                   </a>
                 </li>
               </ul>
