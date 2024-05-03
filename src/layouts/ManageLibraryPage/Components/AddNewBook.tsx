@@ -1,5 +1,6 @@
 import { useOktaAuth } from "@okta/okta-react";
 import { useState } from "react";
+import AddBookRequest from "../../../models/AddBookRequest";
 
 export const AddNewBook = () => {
   const { authState } = useOktaAuth();
@@ -10,7 +11,7 @@ export const AddNewBook = () => {
   const [description, setDescription] = useState("");
   const [copies, setCopies] = useState(0);
   const [category, setCategory] = useState("Category");
-  const [selectedImage, setSelectedIamge] = useState<any>(null);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
 
   // Displays
   const [displayWarning, setDisplayWarning] = useState(false);
@@ -20,8 +21,70 @@ export const AddNewBook = () => {
     setCategory(value);
   }
 
+  async function base64ConversionForImages(e: any) {
+    if (e.target.files[0]) {
+      getBase64(e.target.files[0]);
+    }
+  }
+
+  function getBase64(file: any) {
+    let reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      setSelectedImage(reader.result);
+    };
+    reader.onerror = function (error) {
+      console.log("Error", error);
+    };
+  }
+
+  async function submitNewBook() {
+    const url = `http://localhost:8080/api/admin/secure/add/book`;
+    if (
+      authState?.isAuthenticated &&
+      title !== "" &&
+      author !== "" &&
+      category !== "Category" &&
+      description !== "" &&
+      copies >= 0
+    ) {
+      const book: AddBookRequest = new AddBookRequest(
+        title,
+        author,
+        description,
+        copies,
+        category
+      );
+      book.img = selectedImage;
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authState?.accessToken?.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(book),
+      };
+
+      const submitNewBookResponse = await fetch(url, requestOptions);
+      if (!submitNewBookResponse.ok) {
+        throw new Error("Something went wrong!");
+      }
+      setTitle("");
+      setAuthor("");
+      setDescription("");
+      setCopies(0);
+      setCategory("Category");
+      setSelectedImage(null);
+      setDisplayWarning(false);
+      setDisplaySuccess(true);
+    } else {
+      setDisplayWarning(true);
+      setDisplaySuccess(false);
+    }
+  }
+
   return (
-    <div className="container mt-5 mb-5 ">
+    <div className="container mt-5 mb-5">
       {displaySuccess && (
         <div className="alert alert-success" role="alert">
           Book added successfully
@@ -35,7 +98,7 @@ export const AddNewBook = () => {
       <div className="card">
         <div className="card-header">Add a new book</div>
         <div className="card-body">
-          <form action="POST">
+          <form method="POST">
             <div className="row">
               <div className="col-md-6 mb-3">
                 <label className="form-label">Title</label>
@@ -49,7 +112,7 @@ export const AddNewBook = () => {
                 />
               </div>
               <div className="col-md-3 mb-3">
-                <label className="form-label">Author</label>
+                <label className="form-label"> Author </label>
                 <input
                   type="text"
                   className="form-control"
@@ -60,7 +123,7 @@ export const AddNewBook = () => {
                 />
               </div>
               <div className="col-md-3 mb-3">
-                <label className="form-label">Category</label>
+                <label className="form-label"> Category</label>
                 <button
                   className="form-control btn btn-secondary dropdown-toggle"
                   type="button"
@@ -118,7 +181,7 @@ export const AddNewBook = () => {
                 </ul>
               </div>
             </div>
-            <div className="col-md-12">
+            <div className="col-md-12 mb-3">
               <label className="form-label">Description</label>
               <textarea
                 className="form-control"
@@ -139,9 +202,13 @@ export const AddNewBook = () => {
                 value={copies}
               />
             </div>
-            <input type="file" />
+            <input type="file" onChange={(e) => base64ConversionForImages(e)} />
             <div>
-              <button type="button" className="btn btn-primary mt-3">
+              <button
+                type="button"
+                className="btn btn-primary mt-3"
+                onClick={submitNewBook}
+              >
                 Add Book
               </button>
             </div>
