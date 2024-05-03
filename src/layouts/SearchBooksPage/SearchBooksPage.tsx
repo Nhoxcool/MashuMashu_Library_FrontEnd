@@ -18,7 +18,7 @@ export const SearchBooksPage = () => {
 
   useEffect(() => {
     const fetchBooks = async () => {
-      const bareUrl: string = "http://localhost:8080/api/books";
+      const bareUrl: string = `${process.env.REACT_APP_API}/books`;
 
       let url: string = `${bareUrl}?page=${
         currentPage - 1
